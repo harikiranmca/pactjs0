@@ -1,6 +1,6 @@
 {
   "name": "pactjs",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Pact for Javascript",
   "dependencies": {
     "chai": "^1.9.1",
@@ -28,16 +28,15 @@
     "sinon": "^1.10.3",
     "sinon-chai": "^2.5.0",
     "supertest": "~0.13.0"
-  },
-  "files": [
-    "src/"
-  ],
-  "main": "src/pact",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/orchestrated-io/pactjs0.git"
-  },
-  "keywords": [
+    },
+    "files": [
+      "src/"
+    ],
+    "main": "src/pact",
+    "publishConfig": {
+        "registry": "http://npm.dev.orchestrated.io:4873/"
+    },
+    "keywords": [
     "node",
     "pact",
     "javascript"
