@@ -69,13 +69,17 @@ module.exports = (function() {
         verifyInteraction(nextInteraction, interactionDone);
     };
 
-    var verifyInteraction = function(interaction, done) {
+  var verifyInteraction = function(interaction, done) {
+    var path = interaction.request.path;
+    if (interaction.request.query) {
+      path += '?' + interaction.request.query;
+    }
 
         stateManager.setup(provider, interaction, providerStates);
 
         console.log("  Given " + interaction.provider_state);
         console.log("    " + interaction.description);
-        console.log("      with " + interaction.request.method.toUpperCase() + " " + interaction.request.path);
+        console.log("      with " + interaction.request.method.toUpperCase() + " " + path);
         console.log("        returns a response which");
 
         var errors = [];
@@ -97,9 +101,10 @@ module.exports = (function() {
 
         } else if(interaction.request.method === "get"){
           try {
-          var resp = request(provider).get(interaction.request.path).end(function()
+          var resp = request(provider).get(path).end(function()
           {
             var errors = verifier.verify(interaction, resp.res);
+            console.log("response: "+resp+", errs: "+errors);
             done(errors);
           });
           } catch(err) {

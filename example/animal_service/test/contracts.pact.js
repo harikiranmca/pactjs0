@@ -26,4 +26,8 @@ var pactTest = {
 };
 
 var pact = require('../../../src/verify');
-pact.verify(pactTest);
+pact.verify(pactTest, function(errors) {
+  if (errors && errors.length > 0) {
+    console.log("Errors: " + errors.join('\n'));
+  }
+});

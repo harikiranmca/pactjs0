@@ -35,7 +35,7 @@
   "main": "src/pact",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DiUS/pactjs0.git"
+    "url": "https://github.com/orchestrated-io/pactjs0.git"
   },
   "keywords": [
     "node",
