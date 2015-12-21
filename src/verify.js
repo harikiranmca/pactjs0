@@ -1,123 +1,133 @@
-var log = require('./log')('Pact verifier');
+import logger from './log-compiled';
+var log = logger('Pact verifier');
 
-module.exports = (function() {
+// adds colours to strings
+import 'colors';
 
-    // adds colours to strings
-    require('colors');
+// make direct requests on express services
+import request from './testing-extensions-compiled';
 
-    // make direct requests on express services
-    var request = require('./testing-extensions');
+// pact response verifier
+import * as verifier from './verifier/response';
+import * as stateManager from './provider-state-manager';
 
-    // pact response verifier
-    var verifier = require('./verifier/response');
-    var stateManager = require('./provider-state-manager');
+let providerStates, provider, contract;
 
-    var providerStates, provider, contract;
 
-    /**
-     * Verify all interactions within a contract
-     *
-     * @param pactTest must contain the contract, an instance of the provider, and a map of the initial provider states.
-     * @param done callback function will be passed an array of errors occurring during the verification.
-     */
-    var verifyInteractions = function(pactTest, done) {
-        contract = pactTest.contract;
-        provider = pactTest.provider;
-        providerStates = pactTest.providerStates;
+/**
+ * Verify all interactions within a contract
+ *
+ * @param {object} pactTest must contain the contract, an instance of the
+ *     provider, and a map of the initial provider states.
+ * @param {function} done callback function will be passed an array of errors
+ *     occurring during the verification.
+ */
+export default function verify(pactTest, done) {
+  contract = pactTest.contract;
+  provider = pactTest.provider;
+  providerStates = pactTest.providerStates;
 
-        var startTime = Date.now();
+  var startTime = Date.now();
 
-        console.log("Verifying a pact between " + contract.consumer.name + " and " + contract.provider.name);
+  log.info('Verifying a pact between ' + contract.consumer.name + ' and ' +
+      contract.provider.name);
 
-        var pendingInteractions = contract.interactions;
-        var completedInteractions = [];
+  let pendingInteractions = contract.interactions;
+  let completedInteractions = [];
 
-        var passedCount = 0;
-        var failedCount = 0;
-        var allErrors = [];
+  let passedCount = 0;
+  let failedCount = 0;
+  let allErrors = [];
 
-        // before all
-        stateManager.verify(contract.interactions, providerStates);
+  // before all
+  stateManager.verify(contract.interactions, providerStates);
 
-        // synchronously iterate through all interactions
-        var interactionDone = function(errors) {
-            completedInteractions.push(nextInteraction);
+  // synchronously iterate through all interactions
+  var interactionDone = function(errors) {
+    completedInteractions.push(nextInteraction);
 
-            if(errors.length === 0) {
-                passedCount ++;
-            } else {
-                allErrors = allErrors.concat(errors);
-                failedCount ++;
-            }
-
-            if(pendingInteractions.length > 0) {
-                nextInteraction = pendingInteractions.shift();
-                verifyInteraction(nextInteraction, interactionDone);
-            } else {
-                var endTime = Date.now();
-                var seconds = ((endTime - startTime) / 1000).toFixed(2);
-                console.log("---------------------------------------------------------------");
-                console.log("Test summary");
-                console.log("  " + (""+passedCount).green.bold + " passed, " + (""+failedCount).red.bold + " failed.");
-                console.log("  Took " + seconds + " seconds");
-                console.log("---------------------------------------------------------------");
-                done(allErrors);
-            }
-        };
-
-        var nextInteraction = pendingInteractions.shift();
-        verifyInteraction(nextInteraction, interactionDone);
-    };
-
-  var verifyInteraction = function(interaction, done) {
-    var path = interaction.request.path;
-    if (interaction.request.query) {
-      path += '?' + interaction.request.query;
+    if (errors.length === 0) {
+      passedCount++;
+    } else {
+      allErrors = allErrors.concat(errors);
+      failedCount++;
     }
 
-        stateManager.setup(provider, interaction, providerStates);
+    if (pendingInteractions.length > 0) {
+      nextInteraction = pendingInteractions.shift();
+      verifyInteraction(nextInteraction, interactionDone);
+    } else {
+      var endTime = Date.now();
+      var seconds = ((endTime - startTime) / 1000).toFixed(2);
+      //noinspection GjsLint
+      log.info('--------------------------------------------------------');
+      log.info('Test summary');
+      log.info('  ' + ('' + passedCount).green.bold + ' passed, ' + ('' +
+          failedCount).red.bold + ' failed.');
+      log.info('  Took ' + seconds + ' seconds');
+      //noinspection GjsLint
+      log.info('--------------------------------------------------------');
+      done(allErrors);
+    }
+  };
 
-        console.log("  Given " + interaction.provider_state);
-        console.log("    " + interaction.description);
-        console.log("      with " + interaction.request.method.toUpperCase() + " " + path);
-        console.log("        returns a response which");
+  var nextInteraction = pendingInteractions.shift();
+  verifyInteraction(nextInteraction, interactionDone);
+}
 
-        var errors = [];
+function verifyInteraction(interaction, done) {
+  var path = interaction.request.path;
+  if (interaction.request.query) {
+    path += '?' + interaction.request.query;
+  }
 
-        if(interaction.request.method === "post"){
-          try {
-            var resp = request(provider).post(interaction.request.path)
-              .send(interaction.request.body)
-              .end(function()
-            {
-              var errors = verifier.verify(interaction, resp.res);
-              done(errors);
-            });
+  stateManager.setup(provider, interaction, providerStates);
 
-          } catch(err) {
-            errors.push(err);
-            done(errors);
-          }
+  log.info('  Given ' + interaction.provider_state);
+  log.info('    ' + interaction.description);
+  log.info('      with ' + interaction.request.method.toUpperCase() +
+      ' ' + path);
+  log.info('        returns a response which');
 
-        } else if(interaction.request.method === "get"){
-          try {
-          var resp = request(provider).get(path).end(function()
-          {
-            var errors = verifier.verify(interaction, resp.res);
-            console.log("response: "+resp+", errs: "+errors);
-            done(errors);
+  var errors = [];
+  var resp;
+
+  function doPost() {
+    try {
+      resp = request(provider)
+          .post(interaction.request.path)
+          .send(interaction.request.body)
+          .end(function() {
+            let verify = verifier.verify(interaction, resp.res);
+            done(verify);
           });
-          } catch(err) {
-            errors.push(err);
-            done(errors);
-          }
-        }
-
-
-    };
-
-    return {
-        verify: verifyInteractions,
-        verifyInteraction: verifyInteraction
     }
-})();
+    catch (err) {
+      log.error('          Error: ' + err);
+      errors.push(err);
+      done(errors);
+    }
+  }
+
+  function doGet() {
+    try {
+      resp = request(provider)
+          .get(path)
+          .end(function() {
+                let verify = verifier.verify(interaction, resp.res);
+                done(verify);
+          });
+    }
+    catch (err) {
+      log.error('          Error: ' + err);
+      errors.push(err);
+      done(errors);
+    }
+  }
+
+  if (interaction.request.method === 'post') {
+    doPost();
+  } else if (interaction.request.method === 'get') {
+    doGet();
+  }
+}

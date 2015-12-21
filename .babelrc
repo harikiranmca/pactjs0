@@ -1,0 +1,13 @@
+{
+  "presets": [
+    "es2015"
+  ],
+  "plugins": [
+    "transform-async-to-generator"
+  ],
+  "only": [
+    "example/**",
+    "src/**",
+    "test/**"
+  ]
+}

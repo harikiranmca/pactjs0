@@ -1,10 +1,14 @@
+'use strict';
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
 var chai = require("chai");
 var expect = chai.expect;
 
-module.exports = function(interaction, response, errors) {
+module.exports = function (interaction, response, errors) {
 
   var actual = {};
-  if(typeof response.headers === 'object') {
+  if (_typeof(response.headers) === 'object') {
     Object.keys(response.headers).forEach(function (headerKey) {
       var lowerCaseHeaderKey = headerKey.toLowerCase();
       actual[lowerCaseHeaderKey] = response.headers[headerKey];
@@ -12,7 +16,7 @@ module.exports = function(interaction, response, errors) {
   }
 
   var expected = {};
-  if(typeof interaction.response.headers === 'object') {
+  if (_typeof(interaction.response.headers) === 'object') {
     console.log('          includes headers');
 
     Object.keys(interaction.response.headers).forEach(function (headerKey) {

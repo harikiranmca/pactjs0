@@ -1,22 +1,20 @@
-module.exports = (function() {
+'use strict';
 
-    var verify = function(interaction, response) {
-        var errors = [];
+module.exports = (function () {
 
-        verifiers.forEach(function(verifier) {
-            verifier(interaction, response, errors);
-        });
+  var verify = function verify(interaction, response) {
+    var errors = [];
 
-        return errors;
-    };
+    verifiers.forEach(function (verifier) {
+      verifier(interaction, response, errors);
+    });
 
-    var verifiers = [
-        require('./body'),
-        require('./status-code'),
-        require('./header')
-    ];
+    return errors;
+  };
 
-    return {
-        verify: verify
-    };
+  var verifiers = [require('./body'), require('./status-code'), require('./header')];
+
+  return {
+    verify: verify
+  };
 })();

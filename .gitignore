@@ -2,3 +2,5 @@ node_modules/
 *.iml
 test/coverage/
 .idea
+*-compiled.js
+*-compiled.js.map
