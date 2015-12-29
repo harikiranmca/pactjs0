@@ -4,3 +4,5 @@ test/coverage/
 .idea
 *-compiled.js
 *-compiled.js.map
+*.js.map
+lib/
