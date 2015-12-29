@@ -3,7 +3,14 @@
   "description": "Animal service - For the zoo...",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "babel": "babel test --extensions .es6 --out-dir test --source-maps"
+  },
   "dependencies": {
     "express": "4.x"
+  },
+  "devDependencies": {
+    "babel": "^6.3.26",
+    "babel-cli": "^6.3.17"
   }
 }

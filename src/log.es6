@@ -1,4 +1,4 @@
-import * as colors from 'colors';
+import 'colors';
 
 export default function(name) {
   'use strict';
@@ -9,14 +9,14 @@ export default function(name) {
   }
 
   return {
-    name: name,
-    debug: function(msg) {
+    name,
+    debug: (msg) => {
       console.log(format('debug'.yellow, msg));
     },
-    info: function(msg) {
+    info: (msg) => {
       console.log(format('info '.blue, msg));
     },
-    error: function(msg, err) {
+    error: (msg, err) => {
 
       if (typeof msg === 'string') {
         console.log(format('error'.red.bold, msg));

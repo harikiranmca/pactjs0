@@ -20,6 +20,7 @@
     "eslint": "^1.10.3",
     "eslint-plugin-babel": "^3.0.0",
     "grunt": "~0.4.5",
+    "grunt-babel": "^6.0.0",
     "grunt-contrib-clean": "~0.6.0",
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-contrib-nodeunit": "~0.4.1",
@@ -29,6 +30,7 @@
     "grunt-istanbul-coverage": "0.0.5",
     "grunt-mocha-test": "~0.11.0",
     "grunt-nodemon": "~0.3.0",
+    "load-grunt-tasks": "^3.4.0",
     "mocha": "~1.21.4",
     "mocha-teamcity-cov-reporter": "0.0.1",
     "sinon": "^1.10.3",
@@ -41,6 +43,9 @@
   "main": "src/pact",
   "publishConfig": {
     "registry": "http://npm.dev.orchestrated.io:4873/"
+  },
+  "scripts": {
+    "babel": "babel src --source-maps --out-dir lib"
   },
   "keywords": [
     "node",

@@ -17,7 +17,7 @@ Download the full codebase from GitHub.
 
 To run the example provider verifications:
 
-    /pactjs/example/animal_service/$ node test/contracts.pact.js
+    /pactjs/example/animal_service/$ node test/contracts.pact.es6
   
 
 Links
