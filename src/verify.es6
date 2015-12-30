@@ -39,23 +39,30 @@ export default function verify(pactTest, done) {
   stateManager.verify(contract.interactions, providerStates);
   let promises = undefined;
 
+  function f(interaction, result) {
+    log.info(`  Given  ${interaction.provider_state}`);
+    log.info(`    ${interaction.description}`);
+    log.info(`      with ${interaction.request.method.toUpperCase()} ${interaction.request.path}`);
+    log.info('        returns a response which');
+    log.info(`          ${result.join("\n")}`);
+    if (Array.isArray(result) && result.some((el) => el instanceof Error)) {
+      allErrors = allErrors.concat(result);
+      failedCount++;
+    }
+  }
+
   for (const interaction of contract.interactions) {
     let p = verifyInteraction(interaction);
     if (promises) {
       promises = promises.then((result) => {
-        log.info(`  Given  ${interaction.provider_state}`);
-        log.info(`    ${interaction.description}`);
-        log.info(`      with ${interaction.request.method.toUpperCase()} ${interaction.request.path}`);
-        log.info('        returns a response which');
-        log.info(`          ${result.join("\n")}`);
-        if (Array.isArray(result) && result.some((el) => el instanceof Error)) {
-          allErrors = allErrors.concat(result);
-          failedCount++;
-        }
+        f(interaction, result);
         return p;
       });
     } else {
-      promises = p;
+      promises = p.then((result) => {
+        f(interaction, result);
+        return p;
+      });
     }
   }
 

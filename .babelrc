@@ -1,13 +1,8 @@
 {
   "presets": [
-    "es2015"
-  ],
-  "plugins": [
-    "transform-async-to-generator"
+    "es2015-node4"
   ],
   "only": [
-    "example/**",
-    "src/**",
-    "test/**"
+    "**/*.es6"
   ]
 }

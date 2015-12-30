@@ -1,8 +1,8 @@
 // make a service request without starting the Express server
-var Supertest = require('supertest');
-var Test = Supertest.Test;
+import * as Supertest from 'supertest';
+export default Supertest.default;
 
-export default Supertest;
+var Test = Supertest.Test;
 
 
 /**

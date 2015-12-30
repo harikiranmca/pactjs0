@@ -1,5 +1,4 @@
-import 'babel-polyfill';
-import verify from '../../../lib/verify';
+import verify from '../../../lib/pact';
 
 var provider = require('../src/app');
 var app = provider.app;

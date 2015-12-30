@@ -1,7 +1,5 @@
-'use strict';
-
-var request = require('request');
-var url = require('url');
+import * as request from 'request';
+import * as url from 'url';
 
 var _url = 'http://pact-broker/pacts/provider/ConfigService/consumer/ConfigServiceClient/latest';
 

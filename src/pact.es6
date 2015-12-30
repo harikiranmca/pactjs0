@@ -1,5 +1,3 @@
-'use strict';
+import verify from '../lib/verify'
 
-module.exports = {
-  verify: require('../lib/verify').verify
-};
+export default verify
