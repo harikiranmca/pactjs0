@@ -11,7 +11,7 @@ var pactTest = {
 
   providerStates: {
     'there is an alligator named Mary': function() {
-      animalSvc['Mary'] = {name: 'Mary', species: 'Alligator', public: true};
+      animalSvc['Maryy'] = {name: 'Mary', species: 'Alligator', public: true};
     },
     'there is a private alligator named Garry': function() {
       animalSvc['Garry'] = {name: 'Garry', species: 'Alligator', public: false};

@@ -13,6 +13,8 @@ import * as stateManager from '../lib/provider-state-manager';
 
 let providerStates, provider, contract;
 
+let failedCount = 0;
+let allErrors = [];
 
 /**
  * Verify all interactions within a contract
@@ -32,41 +34,15 @@ export default function verify(pactTest, done) {
   log.info('Verifying a pact between ' + contract.consumer.name + ' and ' +
       contract.provider.name);
 
-  let failedCount = 0;
-  let allErrors = [];
-
   // before all
   stateManager.verify(contract.interactions, providerStates);
-  let promises = undefined;
 
-  function f(interaction, result) {
-    log.info(`  Given  ${interaction.provider_state}`);
-    log.info(`    ${interaction.description}`);
-    log.info(`      with ${interaction.request.method.toUpperCase()} ${interaction.request.path}`);
-    log.info('        returns a response which');
-    log.info(`          ${result.join("\n")}`);
-    if (Array.isArray(result) && result.some((el) => el instanceof Error)) {
-      allErrors = allErrors.concat(result);
-      failedCount++;
-    }
-  }
+  // TODO: make this less clever
+  let interactions = contract.interactions
+      .reduce((prev, cur) => prev.then(() => verifyInteraction(cur)),
+          Promise.resolve());
 
-  for (const interaction of contract.interactions) {
-    let p = verifyInteraction(interaction);
-    if (promises) {
-      promises = promises.then((result) => {
-        f(interaction, result);
-        return p;
-      });
-    } else {
-      promises = p.then((result) => {
-        f(interaction, result);
-        return p;
-      });
-    }
-  }
-
-  promises.then((res) => {
+  interactions.then((res) => {
     log.info(`Result: ${res.join("\n")}`);
     let passedCount = contract.interactions.length - failedCount;
     let endTime = Date.now();
@@ -87,7 +63,7 @@ function doPost(path, body) {
       request(provider)
           .post(path)
           .send(body)
-          .end((err, res) => (err ? reject(err) : resolve(res)));
+          .end((err, res) => err ? reject(err) : resolve(res));
     }
     catch (err) {
       reject(err);
@@ -100,7 +76,7 @@ function doGet(path) {
     try {
       request(provider)
           .get(path)
-          .end((err, res) => err ? reject(err) : resolve(res))
+          .end((err, res) => err ? reject(err) : resolve(res));
     }
     catch (err) {
       reject(err);
@@ -109,34 +85,37 @@ function doGet(path) {
 }
 
 function verifyInteraction(interaction) {
+  function f(interaction, result) {
+    log.info(`  Given  ${interaction.provider_state}`);
+    log.info(`    ${interaction.description}`);
+    log.info(`      with ${interaction.request.method.toUpperCase()} ${interaction.request.path}`);
+    log.info('        returns a response which');
+    log.info(`          ${result.pass.join("\n")}`);
+    log.info(`          ${result.fail.join("\n")}`);
+    if (Array.isArray(result.fail) &&
+        result.fail.some((el) => el instanceof Error)) {
+      allErrors = allErrors.concat(el);
+      failedCount++;
+    }
+  }
+
   let request = interaction.request;
-  stateManager.setup(provider, interaction, providerStates);
 
   let path = request.path + (request.query ? `?${request.query}` : '');
 
-  var errors = [];
+  let req;
 
+  stateManager.setup(provider, interaction, providerStates);
   if (request.method === 'post') {
-    return doPost(path, request.body)
-        .then((res) => {
-          let verify = verifier.verify(interaction, res);
-          log.info(`verify: ${verify}`);
-          return verify;
-        })
-        .catch((err) => {
-          errors = errors.concat(err);
-          return errors;
-        });
+    req = doPost(path, request.body)
   } else if (request.method === 'get') {
-    return doGet(path)
-        .then((res) => {
-          let verify = verifier.verify(interaction, res);
-          log.info(`verify: ${verify}`);
-          return verify
-        })
-        .catch((err) => {
-          errors = errors.concat(err);
-          return errors;
-        });
+    req = doGet(path)
   }
+  let result;
+  req.then((res) => {
+    result = verifier.verify(interaction, res);
+    f(interaction, result);
+  });
+
+  return req;
 }
