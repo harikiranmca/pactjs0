@@ -1,7 +1,7 @@
 {
-  "name": "pactjs",
+  "name": "pactjs-verify",
   "version": "0.0.6",
-  "description": "Pact for Javascript",
+  "description": "Pact verifier for Javascript",
   "dependencies": {
     "chai": "^1.9.1",
     "colors": "~0.6.2",
@@ -50,5 +50,10 @@
     "pact",
     "javascript"
   ],
-  "author": "Jeffrey Cann"
+  "author": "Charles Haynes",
+  "license": "LGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orchestrated-io/pactjs0.git"
+  }
 }
