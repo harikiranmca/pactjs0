@@ -1,0 +1,65 @@
+{
+  "data": {
+    "code": "200",
+    "serviceId": "service123",
+    "avc": "avc1229918821",
+    "fnn": "",
+    "overallStatus": "PASSED",
+    "testStartTime": "2014-03-03T09:00:00Z",
+    "testEndTime": "2014-03-03T09:01:00Z",
+    "testType": "serviceHealth",
+    "testId": "test123",
+    "tests": [
+      {
+        "test": [
+          {
+            "testId": "TST892828",
+            "name": "NTD Status Test",
+            "status": "Completed",
+            "result": "Passed",
+            "ntdSerialNumber": "ALCLF8A4644F",
+            "ntdOperationalState": "UP",
+            "ntdReportingState": "No Defect",
+            "C-VLAN": "0301",
+            "S-VLAN": "103",
+            "batteryFailStatus": "No",
+            "batteryMissingStatus": "No",
+            "powerType": "Standard",
+            "startTime": "2014-03-03T09:00:00Z",
+            "endTime": "2014-03-03T09:00:30Z"
+          },
+          {
+            "testId": "TST892829",
+            "name": "UNI-D Test",
+            "status": "Completed",
+            "result": "Passed",
+            "ethernetPortNumber": "1",
+            "ethernetPortOperationalState": "Up",
+            "ethernetPortlinkState": "Carrier detected",
+            "ethernetPortConfigStatus": "10Base T (full duplex)",
+            "ethernetPortCurrentState": "No Defect",
+            "macAddress": "01-02-03-04-05-06"
+          },
+          {
+            "testId": "TST823881",
+            "name": "Loopback Test",
+            "status": "Completed",
+            "result": "Passed",
+            "packetsReceived": "" ??
+          }
+        ]
+      }
+    ],
+    "request": {
+      "data": {}
+    },
+    "params": {
+      "serviceId": "service123",
+      "testType": "serviceHealth",
+      "testDetails": true
+    },
+    "path": "/",
+    "method": "GET"
+  },
+  "correlationId": "4e3b07b4-898f-4e35-a510-d07ca5f4b109"
+}

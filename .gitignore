@@ -6,3 +6,4 @@ test/coverage/
 *-compiled.js.map
 *.js.map
 lib/
+example/animal_service/test/contracts.pact.js
