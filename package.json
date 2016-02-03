@@ -1,6 +1,6 @@
 {
   "name": "pactjs-verify",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Pact verifier for Javascript",
   "dependencies": {
     "chai": "^1.9.1",
