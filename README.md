@@ -8,7 +8,7 @@ Currently it is a bare-bones implementation that can verify a provider's respons
 Install
 -------
 
-    npm install pactjs --save-dev
+    npm install pactjs-verify --save-dev
 
 Examples
 --------
@@ -17,7 +17,7 @@ Download the full codebase from GitHub.
 
 To run the example provider verifications:
 
-    /pactjs/example/animal_service/$ node test/contracts.pact.es6
+    cd example/animal_service && node test/contracts.pact.es6
   
 
 Links
