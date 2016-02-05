@@ -7,3 +7,4 @@ test/coverage/
 *.js.map
 lib/
 example/animal_service/test/contracts.pact.js
+npm-debug.log

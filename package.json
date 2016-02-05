@@ -36,14 +36,15 @@
     "supertest": "~0.13.0"
   },
   "files": [
-    "src/"
+    "lib/"
   ],
-  "main": "src/pact",
+  "main": "lib/pact",
   "publishConfig": {
     "registry": "http://npm.dev.orchestrated.io:4873/"
   },
   "scripts": {
-    "babel": "babel src --extensions .es6 --source-maps --out-dir lib"
+    "babel": "babel --source-maps --out-dir lib src",
+    "prepublish": "babel --out-dir lib src"
   },
   "keywords": [
     "node",
