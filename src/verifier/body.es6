@@ -1,5 +1,6 @@
 import {observableDiff as deepDiff} from 'deep-diff';
 
+import {expect} from 'chai';
 
 /**
  * TODO Allow unexpected keys to be sent back in the body. See "Pact

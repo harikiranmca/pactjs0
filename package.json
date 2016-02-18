@@ -1,8 +1,9 @@
 {
   "name": "pactjs-verify",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Pact verifier for Javascript",
   "dependencies": {
+    "async": "^1.5.2",
     "chai": "^1.9.1",
     "colors": "~0.6.2",
     "congruence": "^1.6.11",
@@ -15,6 +16,7 @@
   "devDependencies": {
     "babel-cli": "^6.3.17",
     "babel-preset-es2015-node4": "^2.0.2",
+    "debug": "^1.0.4",
     "eslint": "^1.10.3",
     "eslint-plugin-babel": "^3.0.0",
     "grunt": "~0.4.5",

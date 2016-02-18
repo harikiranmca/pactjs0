@@ -1,6 +1,11 @@
 import logger from '../lib/log';
 var log = logger('Pact verifier');
 
+import debugLib from 'debug';
+var debug = debugLib('pactjs-verify');
+
+import async from 'async';
+
 // adds colours to strings
 import 'colors';
 
@@ -38,12 +43,15 @@ export default function verify(pactTest, done) {
   stateManager.verify(contract.interactions, providerStates);
 
   // TODO: make this less clever
-  let interactions = contract.interactions
-      .reduce((prev, cur) => prev.then(() => verifyInteraction(cur)),
-          Promise.resolve());
-
-  interactions.then((res) => {
-    log.info(`Result: ${res.join("\n")}`);
+  async.mapSeries(contract.interactions, (interation, callback) => {
+    verifyInteraction(interation)
+      .then((res) => callback(null, res))
+      .catch((err) => callback(err))
+  }, (err, results) => {
+    if ( err ) {
+      debug(err);
+    }
+    //log.info(`Result: ` + JSON.stringify(results, null, '\t'));
     let passedCount = contract.interactions.length - failedCount;
     let endTime = Date.now();
     let seconds = ((endTime - startTime) / 1000).toFixed(2);
@@ -54,16 +62,23 @@ export default function verify(pactTest, done) {
     log.info(`  Took ${seconds} seconds`);
     log.info('---------------------------------------------------------------');
     done(allErrors);
-  })
+  });
 }
 
 function doPost(path, body) {
   return new Promise((resolve, reject) => {
     try {
+      debug('doPost, path: ' + path + ', body: ' + JSON.stringify(body, null, '\t'));
+
       request(provider)
           .post(path)
           .send(body)
-          .end((err, res) => err ? reject(err) : resolve(res));
+          .end((err, res) => {
+
+            debug('doPost, res.headers: ' + JSON.stringify(res.headers, null, '\t') + ', status: ' + res.status + ', error: ' + JSON.stringify(res.error, null, '\t') + ', body: ' + JSON.stringify(res.body, null, '\t'));
+
+            err ? reject(err) : resolve(res);
+        });
     }
     catch (err) {
       reject(err);
@@ -74,9 +89,15 @@ function doPost(path, body) {
 function doGet(path) {
   return new Promise((resolve, reject) => {
     try {
+      debug('doGet, path: ', path);
       request(provider)
           .get(path)
-          .end((err, res) => err ? reject(err) : resolve(res));
+          .end((err, res) => {
+            
+            debug('doGet, res.headers: ' + JSON.stringify(res.headers, null, '\t') + ', status: ' + res.status + ', error: ' + JSON.stringify(res.error, null, '\t') + ', body: ' + JSON.stringify(res.body, null, '\t'));
+
+            err ? reject(err) : resolve(res);
+          });
     }
     catch (err) {
       reject(err);
@@ -90,11 +111,13 @@ function verifyInteraction(interaction) {
     log.info(`    ${interaction.description}`);
     log.info(`      with ${interaction.request.method.toUpperCase()} ${interaction.request.path}`);
     log.info('        returns a response which');
-    log.info(`          ${result.pass.join("\n")}`);
-    log.info(`          ${result.fail.join("\n")}`);
-    if (Array.isArray(result.fail) &&
-        result.fail.some((el) => el instanceof Error)) {
-      allErrors = allErrors.concat(el);
+    log.info(`          ${result.pass.join("\n").green.bold}`);
+    log.info(`          ${result.fail.join("\n").red.bold}`);
+
+    debug('verifyInteraction: ' + JSON.stringify(result.fail, null, '\t'));
+
+    if (Array.isArray(result.fail) && result.fail.length > 0) {
+      allErrors = allErrors.concat(result.fail);
       failedCount++;
     }
   }
@@ -105,17 +128,22 @@ function verifyInteraction(interaction) {
 
   let req;
 
-  stateManager.setup(provider, interaction, providerStates);
-  if (request.method === 'post') {
-    req = doPost(path, request.body)
-  } else if (request.method === 'get') {
-    req = doGet(path)
-  }
-  let result;
-  req.then((res) => {
-    result = verifier.verify(interaction, res);
-    f(interaction, result);
-  });
-
-  return req;
+  return new Promise((resolve, reject) => {
+    stateManager.setup(provider, interaction, providerStates)
+      .then(() => {
+        if (request.method === 'post') {
+          return doPost(path, request.body)
+        } else if (request.method === 'get') {
+          return doGet(path)
+        }
+      })
+      .then(res => {
+          let result = verifier.verify(interaction, res);
+          f(interaction, result);
+          resolve(result);      
+      })
+      .catch(err => {
+        resolve({fail: err});
+      });
+    });
 }

@@ -1,5 +1,5 @@
 export function setup(provider, interaction, providerStates) {
-  providerStates[interaction.provider_state](provider);
+  return providerStates[interaction.provider_state](provider);
 }
 
 export function verify(interactions, providerStates) {
