@@ -7,7 +7,7 @@ export default function(name) {
   }
 
   return {
-    name,
+    name: name,
     debug: (msg) => {
       console.log(format('debug'.yellow, msg));
     },

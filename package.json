@@ -11,7 +11,8 @@
     "deep-diff": "^0.3.2",
     "express": "4.x",
     "q": "~1.0.1",
-    "request": "~2.40.0"
+    "request": "~2.40.0",
+    "valid-url": "^1.0.9"
   },
   "devDependencies": {
     "babel-cli": "^6.3.17",
@@ -45,7 +46,7 @@
     "registry": "http://npm.dev.orchestrated.io:4873/"
   },
   "scripts": {
-    "babel": "babel --source-maps --out-dir lib src",
+    "babel": "babel --out-dir lib src",
     "prepublish": "babel --out-dir lib src"
   },
   "keywords": [
