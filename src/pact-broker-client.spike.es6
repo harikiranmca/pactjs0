@@ -1,19 +1,39 @@
 import * as request from 'request';
 import * as url from 'url';
+import * as async from 'async'
 
-var _url = 'http://pact-broker/pacts/provider/ConfigService/consumer/ConfigServiceClient/latest';
+export default PactBroker;
 
-request.get(_url, {
-  headers: {
-    "Host": url.parse(_url).hostname,
-    "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:30.0) Gecko/20100101 Firefox/30.0",
-    "Accept": "text/html",
-    "Accept-Language": "en-US,en;q=0.5"
-  }
-}, function (error, response, body) {
-  if (error) {
-    throw new Error(error);
-  } else {
-    console.log(body);
-  }
-});
+function PactBroker(pactUrl){
+this.pactBrokerUrl = pactUrl;
+}
+
+PactBroker.prototype.getPactsAsArray = function(callback){
+        var pactFiles = [];
+        request.get(this.pactBrokerUrl,function(error,res,body){
+            if(error){
+                callback(error,null);
+            }
+            else{
+                var response = JSON.parse(body);
+                if(Array.isArray(response._links.pacts)){
+                    async.eachSeries(response._links.pacts,function(pactObj,callback1){
+                        request.get(pactObj.href,function(err,res,body){
+                            if(err){
+                                callback(err,null);
+                            }else
+                            {
+                                pactFiles.push(JSON.parse(body));
+                                callback1();
+                            }
+                        });
+
+                    },function(){
+                        callback(null,(pactFiles.length > 0 ? pactFiles : null));
+                    });
+                }
+            }
+        });
+
+};
+

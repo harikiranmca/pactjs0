@@ -1,10 +1,20 @@
 import {expect} from 'chai';
 
-export function verify(interaction, response) {
+export function verify(interaction, response,addError) {
   if (!interaction.response.status) {
     return
   }
-  var message = `          has a status code ${interaction.response.status}`;
-  expect(response.statusCode).to.eq(interaction.response.status);
-  return message.green;
+  var message = '          has a status code '+ interaction.response.status;
+  var isError = false;
+  try
+  {
+    expect(response.statusCode).to.eq(interaction.response.status);
+  }
+  catch(err)
+  {
+    isError = true;
+    addError(err);
+  }
+if(!isError)
+  return message.green;;
 }

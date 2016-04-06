@@ -7,7 +7,7 @@ var debug = debugLib('pactjs-verify');
 import async from 'async';
 
 // adds colours to strings
-import 'colors';
+var colors = require('colors');
 
 // make direct requests on express services
 import request from '../lib/testing-extensions';
@@ -16,10 +16,18 @@ import request from '../lib/testing-extensions';
 import * as verifier from '../lib/verifier/response';
 import * as stateManager from '../lib/provider-state-manager';
 
-let providerStates, provider, contract;
+import PactBroker from './pact-broker-client.spike';
 
-let failedCount = 0;
-let allErrors = [];
+var fs = require('fs');
+var path= require('path');
+
+var providerStates, provider, contract, masterSetup, cleanItup;
+var startTime;
+
+var failedCount = 0;
+var allErrors = [];
+
+var localPactTest=null;
 
 /**
  * Verify all interactions within a contract
@@ -30,39 +38,136 @@ let allErrors = [];
  *     occurring during the verification.
  */
 export default function verify(pactTest, done) {
-  contract = pactTest.contract;
+  localPactTest = pactTest;
+  localPactTest.pacts = [];
   provider = pactTest.provider;
   providerStates = pactTest.providerStates;
+  masterSetup = pactTest.masterSetup;
+  cleanItup = pactTest.cleanItup;
 
-  var startTime = Date.now();
-
-  log.info('Verifying a pact between ' + contract.consumer.name + ' and ' +
-      contract.provider.name);
-
-  // before all
-  stateManager.verify(contract.interactions, providerStates);
-
-  // TODO: make this less clever
-  async.mapSeries(contract.interactions, (interation, callback) => {
-    verifyInteraction(interation)
-      .then((res) => callback(null, res))
-      .catch((err) => callback(err))
-  }, (err, results) => {
-    if ( err ) {
-      debug(err);
-    }
-    //log.info(`Result: ` + JSON.stringify(results, null, '\t'));
-    let passedCount = contract.interactions.length - failedCount;
-    let endTime = Date.now();
-    let seconds = ((endTime - startTime) / 1000).toFixed(2);
-    log.info('---------------------------------------------------------------');
-    log.info('Test summary');
-    log.info(`  ${('' + passedCount).green.bold} passed, ` +
-        `${('' + failedCount).red.bold} failed.`);
-    log.info(`  Took ${seconds} seconds`);
-    log.info('---------------------------------------------------------------');
-    done(allErrors);
+  async.series([validate,startSetup,execPacts,cleanUp],function(e,r){
+      if(e)
+      {
+          console.log(e);
+          allErrors.push(e)
+          done(allErrors);
+      }
+      done(allErrors);
   });
+}
+
+function validate(callback){
+    try {
+        switch (localPactTest.typeOfPacts) {
+            case "Folder":
+                fs.accessSync(localPactTest.contract);
+                var pactFiles = fs.readdirSync(localPactTest.contract);
+                for (var i in pactFiles)
+                    localPactTest.pacts.push(path.join(localPactTest.contract, pactFiles[i]));
+                callback();
+                break;
+            case "File":
+                fs.accessSync(localPactTest.contract);
+                localPactTest.pacts.push(localPactTest.contract);
+                callback();
+                break;
+            case "URL":
+                new PactBroker(localPactTest.contract).getPactsAsArray(function(error,results){
+                    if(!error) {
+                        localPactTest.pacts = results;
+                    }
+                    else{
+                        callback(error,null);
+                    }
+                    callback();
+                });
+                break;
+        }
+
+    }
+    catch(error){
+        callback(new Error(error),null);
+    }
+}
+
+function startSetup(callback){
+    if(!(masterSetup == null )){
+        stateManager.masterSetup(masterSetup,provider).then(res => {
+            callback();
+        }).catch(err => {
+            return new Error(err);
+        });
+    }
+    else {
+        callback();
+    }
+}
+
+function execPacts(callback){
+    if (!localPactTest.pacts.length > 0)
+        callback(new Error('No pact files to process'),null);
+        async.eachSeries(localPactTest.pacts,playInteractions,function(error,results){
+            if(error)
+            {
+                console.log(error);
+            }
+        callback();
+    });
+}
+
+function cleanUp(callback){
+    if(!(cleanItup == null )){
+        stateManager.cleanUp(cleanItup,provider).then(res => {
+            callback();
+        }).catch(err => {
+            return new Error(err);
+        });
+    }
+    else {
+        callback();
+    }
+}
+
+function playInteractions(p_pact, callback1){
+    var p_contract = null;
+    failedCount = 0;
+    startTime = Date.now();
+    try {
+        switch (localPactTest.typeOfPacts) {
+            case "Folder":
+            case "File":
+                p_contract = require(p_pact);
+                break;
+            case "URL":
+                p_contract = p_pact;
+                break;
+
+        }
+    }
+    catch(error)
+    {
+        callback1('Please check the pact file - ' + p_pact + ' . Error: ' + error,null);
+    }
+    log.info('Verifying a pact between ' + p_contract.consumer.name + ' and ' + p_contract.provider.name);
+    stateManager.verify(p_contract.interactions, providerStates);
+
+    async.mapSeries(p_contract.interactions, (interation, callback) => {
+        verifyInteraction(interation).then(res => callback(null, res)).catch(err => callback(err));
+    }, (err, results) => {
+        if (err) {
+            debug(err);
+        }
+        var passedCount = p_contract.interactions.length - failedCount;
+        var endTime = Date.now();
+        var seconds = ((endTime - startTime) / 1000).toFixed(2);
+        log.info('---------------------------------------------------------------');
+        log.info('Test summary');
+        log.info('   ' + colors.green(passedCount).bold + ' passed, ' + colors.red(failedCount).bold+ ' failed.');
+        log.info('  Took ' + seconds  +'seconds');
+        log.info('---------------------------------------------------------------');
+        callback1();
+
+    });
 }
 
 function doPost(path, body) {
@@ -107,12 +212,12 @@ function doGet(path) {
 
 function verifyInteraction(interaction) {
   function f(interaction, result) {
-    log.info(`  Given  ${interaction.provider_state}`);
-    log.info(`    ${interaction.description}`);
-    log.info(`      with ${interaction.request.method.toUpperCase()} ${interaction.request.path}`);
+    log.info('  Given  '+ interaction.provider_state);
+    log.info('    '+ interaction.description);
+    log.info('      with '+ interaction.request.method.toUpperCase() + ' ' +  interaction.request.path + '');
     log.info('        returns a response which');
-    log.info(`          ${result.pass.join("\n").green.bold}`);
-    log.info(`          ${result.fail.join("\n").red.bold}`);
+    log.info('          ' + result.pass.join("\n\t\t\t\t").green.bold);
+    log.info('          ' + result.fail.join("\n\t\t\t\t").red.bold);
 
     debug('verifyInteraction: ' + JSON.stringify(result.fail, null, '\t'));
 
@@ -121,13 +226,9 @@ function verifyInteraction(interaction) {
       failedCount++;
     }
   }
-
-  let request = interaction.request;
-
-  let path = request.path + (request.query ? `?${request.query}` : '');
-
-  let req;
-
+  var request = interaction.request;
+  var path = request.path + (request.query ? '?'+ request.query : '');
+  var req;
   return new Promise((resolve, reject) => {
     stateManager.setup(provider, interaction, providerStates)
       .then(() => {
@@ -138,9 +239,10 @@ function verifyInteraction(interaction) {
         }
       })
       .then(res => {
-          let result = verifier.verify(interaction, res);
+          var result = verifier.verify(interaction, res);
           f(interaction, result);
-          resolve(result);      
+          stateManager.tearDown(provider, interaction, providerStates).then(()=>{resolve();}).catch(err=>{resolve({ fail: err })});
+          resolve(result);
       })
       .catch(err => {
         resolve({fail: err});
