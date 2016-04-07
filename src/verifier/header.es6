@@ -26,18 +26,17 @@ export function verify(interaction, response,addError) {
     });
   }
 
-  for (const key of expected.keys()) {
-      try
-      {
-          expect(actual).to.not.be.null;
-          expect(actual.get(key)).to.eq(expected.get(key));
-      }
-      catch(err)
-      {
-          isError = true;
-          addError(err);
-      }
-  }
+    expected.forEach(function(val,key){
+        try {
+            expect(actual).to.not.be.null;
+            expect(actual.get(key)).to.eq(expected.get(key));
+        } catch (err) {
+            isError = true;
+            addError(err);
+        }
+    });
+
+
     if(!isError)
         return message.green;
 }

@@ -4,6 +4,7 @@
   "description": "Pact verifier for Javascript",
   "dependencies": {
     "async": "^1.5.2",
+    "babel-plugin-transform-es2015-arrow-functions": "^6.5.2",
     "chai": "^1.9.1",
     "colors": "~0.6.2",
     "congruence": "^1.6.11",

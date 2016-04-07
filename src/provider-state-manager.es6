@@ -35,10 +35,9 @@ export function tearDown(provider, interaction, providerStates) {
 }
 
 export function verify(interactions, providerStates) {
-  for (const interaction of interactions) {
-    if (typeof providerStates[interaction.provider_state] === 'undefined') {
-      throw new Error("Missing provider state '" +
-          interaction.provider_state + "'");
-    }
-  }
+    interactions.forEach(function(interaction){
+        if (typeof providerStates[interaction.provider_state] === 'undefined') {
+            throw new Error("Missing provider state '" + interaction.provider_state + "'");
+        }
+    });
 }
