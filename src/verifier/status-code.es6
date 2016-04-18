@@ -9,12 +9,16 @@ export function verify(interaction, response,addError) {
   try
   {
     expect(response.statusCode).to.eq(interaction.response.status);
+    expect(response.status).to.eq(interaction.response.status);
+
   }
   catch(err)
   {
     isError = true;
     addError(err);
   }
-if(!isError)
-  return message.green;;
+  if(!isError)
+    return message.green;
+  else
+    return '';
 }

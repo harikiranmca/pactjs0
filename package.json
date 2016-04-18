@@ -1,10 +1,9 @@
 {
   "name": "pactjs-verify",
-  "version": "0.0.9",
+  "version": "1.0.14",
   "description": "Pact verifier for Javascript",
   "dependencies": {
     "async": "^1.5.2",
-    "babel-plugin-transform-es2015-arrow-functions": "^6.5.2",
     "chai": "^1.9.1",
     "colors": "~0.6.2",
     "congruence": "^1.6.11",
@@ -13,7 +12,9 @@
     "express": "4.x",
     "q": "~1.0.1",
     "request": "~2.40.0",
-    "valid-url": "^1.0.9"
+    "valid-url": "^1.0.9",
+    "supertest": "~0.13.0"
+
   },
   "devDependencies": {
     "babel-cli": "^6.3.17",
@@ -36,16 +37,13 @@
     "mocha": "~1.21.4",
     "mocha-teamcity-cov-reporter": "0.0.1",
     "sinon": "^1.10.3",
-    "sinon-chai": "^2.5.0",
-    "supertest": "~0.13.0"
+    "sinon-chai": "^2.5.0"
   },
   "files": [
     "lib/"
   ],
   "main": "lib/pact",
-  "publishConfig": {
-    "registry": "http://npm.dev.orchestrated.io:4873/"
-  },
+
   "scripts": {
     "babel": "babel --out-dir lib src",
     "prepublish": "babel --out-dir lib src"
@@ -55,10 +53,10 @@
     "pact",
     "javascript"
   ],
-  "author": "Charles Haynes",
-  "license": "LGPL-3.0",
+  "author": "Harikiran Challa",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/orchestrated-io/pactjs0.git"
+    "url": "https://github.com/harikiranmca/pactjs0.git"
   }
 }

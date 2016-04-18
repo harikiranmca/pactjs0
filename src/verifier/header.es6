@@ -39,4 +39,7 @@ export function verify(interaction, response,addError) {
 
     if(!isError)
         return message.green;
+    else
+        return '';
+
 }

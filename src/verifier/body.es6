@@ -14,22 +14,20 @@ export function verify(interaction, response,addError) {
   var isError =  false;
 
   deepDiff(interaction.response.body, response.body, function(diff) {
-    var matchingRulesDefined = typeof interaction.response.matchingRules === 'undefined' ? false : true;
-    try {
-      if (diff.kind !== 'N') {
-          if(matchingRulesDefined){
-              if(typeof interaction.response.matchingRules[getPath((diff.path).toString())]=== 'undefined') {
-                  expect(diff.lhs).to.eq(diff.rhs);
-              }
-              else
+      try {
+          if (diff.kind !== 'N')
+          {
+              if(interaction.response.matchingRules != undefined && interaction.response.matchingRules[getPath((diff.path).toString())] != undefined)
               {
                   var reg= new RegExp(interaction.response.matchingRules[getPath((diff.path).toString())].regex);
                   expect(diff.lhs).to.match(reg);
               }
-          }else{
-              expect(diff.lhs).to.eq(diff.rhs);
+              else
+              {
+                  expect(diff.lhs).to.eq(diff.rhs);
+              }
           }
-      }
+
     }
     catch(err) {
       isError = true;
@@ -38,7 +36,9 @@ export function verify(interaction, response,addError) {
 
   });
   if(!isError)
-  return message.green;
+         return message.green
+  else
+        return '';
 }
 
 function getPath(diffpath)

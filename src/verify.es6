@@ -49,7 +49,7 @@ export default function verify(pactTest, done) {
       if(e)
       {
           console.log(e);
-          allErrors.push(e)
+          allErrors.push(e);
           done(allErrors);
       }
       done(allErrors);
@@ -62,70 +62,60 @@ function validate(callback){
             case "Folder":
                 fs.accessSync(localPactTest.contract);
                 var pactFiles = fs.readdirSync(localPactTest.contract);
-                for (var i in pactFiles)
-                    localPactTest.pacts.push(path.join(localPactTest.contract, pactFiles[i]));
-                callback();
+                for (var i in pactFiles) {
+                    if (pactFiles[i].substring(pactFiles[i].lastIndexOf('.') + 1, pactFiles[i].length) === 'json') {
+                        localPactTest.pacts.push(path.join(localPactTest.contract, pactFiles[i]));
+                    }
+                }
+                performCallBack();
                 break;
             case "File":
                 fs.accessSync(localPactTest.contract);
                 localPactTest.pacts.push(localPactTest.contract);
-                callback();
+                performCallBack();
                 break;
             case "URL":
-                new PactBroker(localPactTest.contract).getPactsAsArray(function(error,results){
-                    if(!error) {
-                        localPactTest.pacts = results;
-                    }
-                    else{
-                        callback(error,null);
-                    }
-                    callback();
+                new PactBroker(localPactTest.contract).getPactsAsArray().then(results =>{
+                    localPactTest.pacts = results;
+                    performCallBack();
+                }).catch(error => {
+                    performCallBack(error,null);
                 });
                 break;
         }
 
+
+    } catch (error) {
+        callback(error, null);
     }
-    catch(error){
-        callback(new Error(error),null);
+
+    function performCallBack(){
+        if (!localPactTest.pacts.length > 0)
+            callback(new Error('No pact files to process'));
+        callback();
     }
 }
 
 function startSetup(callback){
-    if(!(masterSetup == null )){
-        stateManager.masterSetup(masterSetup,provider).then(res => {
-            callback();
-        }).catch(err => {
-            return new Error(err);
-        });
-    }
-    else {
-        callback();
-    }
+    if(masterSetup)
+        masterSetup();
+    callback();
 }
 
 function execPacts(callback){
-    if (!localPactTest.pacts.length > 0)
-        callback(new Error('No pact files to process'),null);
         async.eachSeries(localPactTest.pacts,playInteractions,function(error,results){
             if(error)
             {
-                console.log(error);
+                callback(error);
             }
-        callback();
+            callback();
     });
 }
 
 function cleanUp(callback){
-    if(!(cleanItup == null )){
-        stateManager.cleanUp(cleanItup,provider).then(res => {
-            callback();
-        }).catch(err => {
-            return new Error(err);
-        });
-    }
-    else {
-        callback();
-    }
+    if(cleanItup)
+        cleanItup();
+    callback();
 }
 
 function playInteractions(p_pact, callback1){
@@ -148,6 +138,7 @@ function playInteractions(p_pact, callback1){
     {
         callback1('Please check the pact file - ' + p_pact + ' . Error: ' + error,null);
     }
+
     log.info('Verifying a pact between ' + p_contract.consumer.name + ' and ' + p_contract.provider.name);
     stateManager.verify(p_contract.interactions, providerStates);
 
@@ -180,7 +171,7 @@ function doPost(path, body) {
           .send(body)
           .end((err, res) => {
 
-            debug('doPost, res.headers: ' + JSON.stringify(res.headers, null, '\t') + ', status: ' + res.status + ', error: ' + JSON.stringify(res.error, null, '\t') + ', body: ' + JSON.stringify(res.body, null, '\t'));
+            debug('doPost, response: ' + JSON.stringify(res));
 
             err ? reject(err) : resolve(res);
         });
@@ -198,9 +189,8 @@ function doGet(path) {
       request(provider)
           .get(path)
           .end((err, res) => {
-            
-            debug('doGet, res.headers: ' + JSON.stringify(res.headers, null, '\t') + ', status: ' + res.status + ', error: ' + JSON.stringify(res.error, null, '\t') + ', body: ' + JSON.stringify(res.body, null, '\t'));
 
+              debug('doGet, response: ' + JSON.stringify(res));
             err ? reject(err) : resolve(res);
           });
     }

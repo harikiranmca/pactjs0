@@ -1,6 +1,7 @@
 import {verify as body} from './body';
 import {verify as statusCode} from './status-code';
 import {verify as header} from './header';
+import {verify as structure} from './structure';
 
 export function verify(interaction, response) {
   var errors = [];
@@ -12,6 +13,9 @@ export function verify(interaction, response) {
   }
 
     try {
+      var ret_structure = structure(interaction, response, addError);
+      resp = resp.concat(ret_structure);
+
       var ret_header = header(interaction, response, addError);
       resp = resp.concat(ret_header);
 

@@ -13,23 +13,26 @@ var PactProviderTest =  function (p_url, p_contract_path) {
     this.typeOfPacts = null;
     this.contract = [];
 
-    if (typeof p_contract_path === 'undefined') {
-        this.typeOfPacts = 'Folder';
-        this.contract= path.join(process.cwd(),'test','pact');
-    } else {
-        if (validUrl.is_uri(p_contract_path)) {
-            this.typeOfPacts = 'URL';
-            this.contract = p_contract_path;
-        } else {
-            this.typeOfPacts = 'File';
-            this.contract = path.join(process.cwd(),'test','pact', p_contract_path);
-        }
-    }
-    if(validUrl.is_uri(p_url)){
+    if(p_url != undefined && validUrl.is_uri(p_url)){
         this.url = p_url;
     }else{
         return new Error('Invalid Provider URL');
     }
+
+    if (p_contract_path === undefined) {
+        this.typeOfPacts = 'Folder';
+        this.contract= this.getPactFilesPath();
+    }
+    else if (validUrl.is_uri(p_contract_path)) {
+            this.typeOfPacts = 'URL';
+            this.contract = p_contract_path;
+        }
+    else {
+            this.typeOfPacts = 'File';
+            this.contract = path.join(this.getPactFilesPath(), p_contract_path);
+
+    }
+
 
 }
 PactProviderTest.prototype.setProviderState = function (stateName,setupFunction,teardownFunction){
@@ -61,7 +64,9 @@ PactProviderTest.prototype.start = function(){
         });
     }, 3000);
 }
-
+PactProviderTest.prototype.getPactFilesPath = function(){
+    return path.join(process.cwd(),'test','pact','providerpacts');
+}
 module.exports = PactProviderTest;
 
 

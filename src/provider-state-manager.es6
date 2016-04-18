@@ -1,24 +1,9 @@
-export function masterSetup(masterFn,provider) {
-    return new Promise((resolve,reject) => {
-        masterFn(provider);
-        resolve();
-    });
-
-}
-
-export function cleanUp(cleanFn,provider) {
-    return new Promise((resolve,reject) => {
-        cleanFn(provider);
-        resolve();
-    });
-
-}
 
 export function setup(provider, interaction, providerStates) {
   return new Promise((resolve,reject) => {
     if(!(providerStates[interaction.provider_state].setup == null))
     {
-      providerStates[interaction.provider_state].setup(provider);
+      providerStates[interaction.provider_state].setup(interaction,provider);
     }
     resolve();
   });
@@ -28,7 +13,7 @@ export function tearDown(provider, interaction, providerStates) {
   return new Promise((resolve,reject) => {
     if(!(providerStates[interaction.provider_state].teardown == null))
     {
-      providerStates[interaction.provider_state].teardown(provider);
+      providerStates[interaction.provider_state].teardown(interaction,provider);
     }
     resolve();
   });
